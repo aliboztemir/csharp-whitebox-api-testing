@@ -1,6 +1,6 @@
 # StudyGroupApi — C# Whitebox API Testing
 
-A portfolio project demonstrating white-box testing of an ASP.NET Core REST API using NUnit, Moq, and EF Core in-memory SQLite. The emphasis is on test architecture, test readability, and multi-layer API testing.
+A portfolio project demonstrating white-box testing of an ASP.NET Core REST API using NUnit, Moq, and EF Core in-memory SQLite. The emphasis is on test architecture, test readability, and multi-layer verification across unit and component tests.
 
 ---
 
@@ -11,6 +11,55 @@ A portfolio project demonstrating white-box testing of an ASP.NET Core REST API 
 | `StudyGroupApi` | REST API | ASP.NET Core REST API — study group management (create, join, leave, search) |
 | `StudyGroupApi.UnitTests` | Unit Tests | Domain logic + controller behavior via Moq |
 | `StudyGroupApi.ComponentTests` | Component Tests | Controller + repository wired with SQLite in-memory DB |
+
+---
+
+## Public Test Report
+
+The latest published HTML test report is available here:
+
+- Detailed HTML report: `https://aliboztemir.github.io/csharp-whitebox-api-testing/details.html`
+- Report landing page: `https://aliboztemir.github.io/csharp-whitebox-api-testing/`
+
+Because the report is published through GitHub Pages, it can be viewed by public/guest users without signing in, as long as the repository Pages site remains public.
+
+---
+
+## CI/CD with GitHub Actions
+
+This repository includes an automated CI/CD workflow using GitHub Actions.
+
+### What the workflow does
+
+On every push, pull request, or manual trigger:
+
+1. Checks out the repository
+2. Sets up .NET 8
+3. Restores NuGet dependencies
+4. Builds the solution in Release mode
+5. Runs all tests and generates TRX test results
+6. Publishes parsed test output to GitHub Checks
+7. Generates a customer-friendly HTML report and a detailed HTML report from TRX results
+8. Uploads TRX and HTML artifacts
+9. Deploys the HTML report to GitHub Pages when tests complete successfully
+
+### Workflow location
+
+- `.github/workflows/tests.yml`
+
+### Manual execution
+
+You can manually run the workflow from the **Actions** tab using the **Run workflow** button.
+
+### Published output
+
+After a successful run:
+
+- GitHub Pages summary page is published as the landing page
+- Detailed per-test HTML output is published at the detailed report link above
+- Raw `.trx` files remain available in workflow artifacts for technical traceability
+
+This gives both a stakeholder-friendly report view and a developer-friendly raw execution record.
 
 ---
 
@@ -148,4 +197,4 @@ dotnet test StudyGroupApi.ComponentTests/
 - Entity Framework Core (SQLite / SQL Server)
 - NUnit 3
 - Moq
-- Azure Pipelines CI
+- GitHub Actions CI/CD
