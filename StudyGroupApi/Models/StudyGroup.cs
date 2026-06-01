@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace TestAppAPI.Models
+namespace StudyGroupApi.Models
 {
     public class StudyGroup
     {
@@ -14,7 +14,7 @@ namespace TestAppAPI.Models
         }
         public StudyGroup() { }
 
-        [Key]  // ✅ Ensures EF Core recognizes StudyGroupId as the Primary Key
+        [Key]  // ? Ensures EF Core recognizes StudyGroupId as the Primary Key
         public int StudyGroupId { get; set; }
 
         public string Name { get; }

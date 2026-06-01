@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TestAppAPI.Data;
-using TestAppAPI.Models;
+using Microsoft.EntityFrameworkCore;
+using StudyGroupApi.Data;
+using StudyGroupApi.Models;
 
-namespace TestAppAPI.Repositories
+namespace StudyGroupApi.Repositories
 {
     public class StudyGroupRepository : IStudyGroupRepository
     {

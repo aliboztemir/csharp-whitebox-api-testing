@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35707.178 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAppAPI.Tests", "TestAppAPI.Tests\TestAppAPI.Tests.csproj", "{0630C14A-DB53-4899-AE9F-4C00C38AF5C0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StudyGroupApi.Tests", "StudyGroupApi.Tests\StudyGroupApi.Tests.csproj", "{0630C14A-DB53-4899-AE9F-4C00C38AF5C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAppAPI", "TestAppAPI\TestAppAPI.csproj", "{92E3AC29-E21D-48C6-9939-C0B84775A7F0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StudyGroupApi", "StudyGroupApi\StudyGroupApi.csproj", "{92E3AC29-E21D-48C6-9939-C0B84775A7F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

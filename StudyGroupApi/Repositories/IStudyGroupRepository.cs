@@ -1,6 +1,6 @@
-﻿using TestAppAPI.Models;
+using StudyGroupApi.Models;
 
-namespace TestAppAPI.Repositories
+namespace StudyGroupApi.Repositories
 {
     public interface IStudyGroupRepository
     {

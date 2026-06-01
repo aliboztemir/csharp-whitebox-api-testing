@@ -1,7 +1,7 @@
-﻿using System.ComponentModel;
-using TestAppAPI.Models;
+using System.ComponentModel;
+using StudyGroupApi.Models;
 
-namespace TestAppAPI.Tests.Unit
+namespace StudyGroupApi.Tests.Unit
 {
     [TestFixture]
     public class StudyGroupUnitTests

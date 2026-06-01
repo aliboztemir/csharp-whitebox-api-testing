@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TestAppAPI.Models;
+using Microsoft.EntityFrameworkCore;
+using StudyGroupApi.Models;
 
-namespace TestAppAPI.Data
+namespace StudyGroupApi.Data
 {
     public class AppDbContext : DbContext
     {

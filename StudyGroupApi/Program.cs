@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TestAppAPI.Data;
-using TestAppAPI.Repositories;
+using Microsoft.EntityFrameworkCore;
+using StudyGroupApi.Data;
+using StudyGroupApi.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 

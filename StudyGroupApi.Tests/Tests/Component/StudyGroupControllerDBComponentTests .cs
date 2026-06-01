@@ -1,11 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
-using TestAppAPI.Controllers;
-using TestAppAPI.Data;
-using TestAppAPI.Repositories;
-using TestAppAPI.Models;
+using StudyGroupApi.Controllers;
+using StudyGroupApi.Data;
+using StudyGroupApi.Repositories;
+using StudyGroupApi.Models;
 
-namespace TestAppAPI.Tests.Component
+namespace StudyGroupApi.Tests.Component
 {
     [TestFixture]
     public class StudyGroupControllerDBComponentTests

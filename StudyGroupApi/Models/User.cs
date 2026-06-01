@@ -1,4 +1,4 @@
-﻿namespace TestAppAPI.Models
+namespace StudyGroupApi.Models
 {
     public class User
     {

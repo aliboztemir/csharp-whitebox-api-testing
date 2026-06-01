@@ -1,10 +1,10 @@
-﻿using Moq;
+using Moq;
 using Microsoft.AspNetCore.Mvc;
-using TestAppAPI.Controllers;
-using TestAppAPI.Models;
-using TestAppAPI.Repositories;
+using StudyGroupApi.Controllers;
+using StudyGroupApi.Models;
+using StudyGroupApi.Repositories;
 
-namespace TestAppAPI.Tests.Component
+namespace StudyGroupApi.Tests.Component
 {
     [TestFixture]
     public class StudyGroupControllerMockTests

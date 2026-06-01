@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using TestAppAPI.Models;
-using TestAppAPI.Repositories;
+using Microsoft.AspNetCore.Mvc;
+using StudyGroupApi.Models;
+using StudyGroupApi.Repositories;
 
-namespace TestAppAPI.Controllers
+namespace StudyGroupApi.Controllers
 {
     [Route("api/studygroups")]
     [ApiController]
