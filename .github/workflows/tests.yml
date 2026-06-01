@@ -3,10 +3,10 @@ name: Tests
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
-  actions: read
   checks: write
   pages: write
   id-token: write
@@ -34,26 +34,14 @@ jobs:
         run: dotnet test StudyGroupApi.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
 
       - name: Publish test report to GitHub
-        uses: dorny/test-reporter@v1
         if: always()
+        uses: dorny/test-reporter@v1
         with:
           name: .NET Test Results
           path: "TestResults/**/*.trx"
           reporter: dotnet-trx
 
-      - name: Install ReportGenerator
-        if: always()
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool
-
-      - name: Generate HTML report
-        if: always()
-        run: |
-          reportgenerator \
-            -reports:"TestResults/**/*.trx" \
-            -targetdir:"TestReport" \
-            -reporttypes:"Html;HtmlSummary"
-
-      - name: Create branded landing page
+      - name: Create customer-facing HTML landing page
         if: always()
         run: |
           mkdir -p TestReport
@@ -72,9 +60,6 @@ jobs:
                 --text: #edf2ff;
                 --muted: #a9b4d0;
                 --accent: #6ea8fe;
-                --success: #22c55e;
-                --warning: #f59e0b;
-                --danger: #ef4444;
                 --border: #2a3766;
               }
               * { box-sizing: border-box; }
@@ -137,6 +122,7 @@ jobs:
               .card .value {
                 font-size: 24px;
                 font-weight: 700;
+                word-break: break-word;
               }
               .actions {
                 display: flex;
@@ -152,10 +138,6 @@ jobs:
                 color: white;
                 font-weight: 600;
                 border: 1px solid transparent;
-              }
-              .btn-primary {
-                background: var(--accent);
-                color: #081120;
               }
               .btn-secondary {
                 background: transparent;
@@ -194,8 +176,8 @@ jobs:
                 <h1>StudyGroup API Automated Test Results</h1>
                 <p>
                   This page contains the latest automated test execution summary for the
-                  <strong>StudyGroup API</strong> project. Detailed raw test outputs and
-                  generated technical reports are available in the GitHub Actions run artifacts.
+                  <strong>StudyGroup API</strong> project. Detailed raw test outputs are
+                  available in the GitHub Actions artifacts and Checks view.
                 </p>
 
                 <div class="grid">
@@ -209,7 +191,7 @@ jobs:
                   </div>
                   <div class="card">
                     <h2>Report Type</h2>
-                    <div class="value">HTML + TRX + Actions Summary</div>
+                    <div class="value">TRX + GitHub Checks + Artifact</div>
                   </div>
                   <div class="card">
                     <h2>Audience</h2>
@@ -218,7 +200,6 @@ jobs:
                 </div>
 
                 <div class="actions">
-                  <a class="btn btn-primary" href="./index.htm">Open Detailed HTML Report</a>
                   <a class="btn btn-secondary" href="https://github.com/aliboztemir/csharp-whitebox-api-testing/actions">Open GitHub Actions</a>
                 </div>
               </section>
@@ -227,18 +208,18 @@ jobs:
                 <h2>What this report includes</h2>
                 <ul>
                   <li>Automated test execution results collected during CI runs</li>
-                  <li>Machine-readable <code>.trx</code> files for technical traceability</li>
-                  <li>GitHub Actions summary annotations for fast review</li>
-                  <li>HTML output intended for stakeholder-friendly presentation</li>
+                  <li>Machine-readable <code>.trx</code> files for traceability</li>
+                  <li>GitHub Checks annotations for quick inspection</li>
+                  <li>Uploaded artifacts for download and review</li>
                 </ul>
               </section>
 
               <section class="section">
                 <h2>Presentation recommendation</h2>
                 <ul>
-                  <li>Use this landing page as the customer-facing entry point</li>
-                  <li>Use the detailed HTML report for engineering validation</li>
-                  <li>Use GitHub Actions artifacts when raw execution evidence is required</li>
+                  <li>Use this page as a customer-facing summary entry point</li>
+                  <li>Use the GitHub Checks tab for pass/fail breakdown</li>
+                  <li>Use uploaded TRX artifacts when raw execution evidence is needed</li>
                 </ul>
                 <div class="footer">
                   Generated automatically by GitHub Actions.
@@ -249,35 +230,25 @@ jobs:
           </html>
           EOF
 
-          if [ -f TestReport/index.htm ]; then
-            mv TestReport/index.htm TestReport/details.html
-            cp TestReport/index.html TestReport/index.original.html
-            python3 - <<'PY'
-from pathlib import Path
-p = Path('TestReport/index.html')
-text = p.read_text()
-text = text.replace('./index.htm', './details.html')
-p.write_text(text)
-PY
-          fi
-
       - name: Upload TRX results
-        uses: actions/upload-artifact@v4
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: test-results-trx
           path: TestResults/**/*.trx
+          if-no-files-found: warn
 
       - name: Upload HTML report
-        uses: actions/upload-artifact@v4
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: test-report-html
           path: TestReport
+          if-no-files-found: error
 
   deploy-pages:
     needs: test
-    if: always()
+    if: ${{ needs.test.result == 'success' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
