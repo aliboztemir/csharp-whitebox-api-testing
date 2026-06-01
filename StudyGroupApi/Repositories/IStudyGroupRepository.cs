@@ -1,4 +1,4 @@
-using StudyGroupApi.Models;
+using StudyGroupApi.Domain.Entities;
 
 namespace StudyGroupApi.Repositories
 {

@@ -1,4 +1,4 @@
-namespace StudyGroupApi.Models
+namespace StudyGroupApi.Domain.Entities
 {
     public class User
     {

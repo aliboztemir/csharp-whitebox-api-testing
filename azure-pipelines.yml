@@ -28,21 +28,27 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
-    projects: 'StudyGroupApi.Tests/StudyGroupApi.Tests.csproj'
+    projects: 'StudyGroupApi.UnitTests/StudyGroupApi.UnitTests.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: 'StudyGroupApi.ComponentTests/StudyGroupApi.ComponentTests.csproj'
     arguments: '--configuration $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
-    projects: 'StudyGroupApi.Tests/StudyGroupApi.Tests.csproj'
-    arguments: '--configuration $(buildConfiguration) --filter FullyQualifiedName~StudyGroupApi.Tests.Tests.Unit --logger trx --results-directory $(System.DefaultWorkingDirectory)/TestResults/UnitTests'
+    projects: 'StudyGroupApi.UnitTests/StudyGroupApi.UnitTests.csproj'
+    arguments: '--configuration $(buildConfiguration) --logger trx --results-directory $(System.DefaultWorkingDirectory)/TestResults/UnitTests'
   continueOnError: true
 
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
-    projects: 'StudyGroupApi.Tests/StudyGroupApi.Tests.csproj'
-    arguments: '--configuration $(buildConfiguration) --filter FullyQualifiedName~StudyGroupApi.Tests.Tests.Component --logger trx --results-directory $(System.DefaultWorkingDirectory)/TestResults/ComponentTests'
+    projects: 'StudyGroupApi.ComponentTests/StudyGroupApi.ComponentTests.csproj'
+    arguments: '--configuration $(buildConfiguration) --logger trx --results-directory $(System.DefaultWorkingDirectory)/TestResults/ComponentTests'
   continueOnError: true
 
 - task: PublishTestResults@2

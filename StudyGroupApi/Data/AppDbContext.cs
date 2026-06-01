@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using StudyGroupApi.Models;
+using StudyGroupApi.Domain.Entities;
 
 namespace StudyGroupApi.Data
 {
