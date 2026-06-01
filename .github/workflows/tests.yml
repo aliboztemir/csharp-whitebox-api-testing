@@ -4,6 +4,13 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  pages: write
+  id-token: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -23,5 +30,60 @@ jobs:
       - name: Build solution
         run: dotnet build StudyGroupApi.sln --configuration Release --no-restore
 
-      - name: Run tests
-        run: dotnet test StudyGroupApi.sln --configuration Release --no-build
+      - name: Run tests and generate TRX
+        run: dotnet test StudyGroupApi.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+
+      - name: Publish test report to GitHub
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: .NET Test Results
+          path: "TestResults/**/*.trx"
+          reporter: dotnet-trx
+
+      - name: Install ReportGenerator
+        if: always()
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Generate HTML report
+        if: always()
+        run: |
+          reportgenerator \
+            -reports:"TestResults/**/*.trx" \
+            -targetdir:"TestReport" \
+            -reporttypes:"Html;HtmlSummary"
+
+      - name: Upload TRX results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-trx
+          path: TestResults/**/*.trx
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report-html
+          path: TestReport
+
+  deploy-pages:
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download HTML report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: test-report-html
+          path: ./site
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
