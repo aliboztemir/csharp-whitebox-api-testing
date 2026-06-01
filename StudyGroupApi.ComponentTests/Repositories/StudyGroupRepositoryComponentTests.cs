@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using StudyGroupApi.ComponentTests.Fixtures;
-using StudyGroupApi.ComponentTests.TestSupport.Builders;
+using StudyGroupApi.Tests.TestSupport.Builders;
 using StudyGroupApi.Domain.Entities;
 
 namespace StudyGroupApi.ComponentTests.Repositories
@@ -33,9 +33,7 @@ namespace StudyGroupApi.ComponentTests.Repositories
         [Category("Negative")]
         public void Should_Throw_ArgumentException_When_Name_Is_Too_Short()
         {
-            var studyGroup = new StudyGroupBuilder().WithId(1).WithName("Bio").Build();
-
-            Assert.ThrowsAsync<ArgumentException>(() => Repository.CreateStudyGroup(studyGroup));
+            Assert.Throws<ArgumentException>(() => new StudyGroupBuilder().WithId(1).WithName("Bio").Build());
         }
 
         [Test]
@@ -44,9 +42,7 @@ namespace StudyGroupApi.ComponentTests.Repositories
         [Category("Negative")]
         public void Should_Throw_ArgumentException_When_Name_Is_Too_Long()
         {
-            var studyGroup = new StudyGroupBuilder().WithId(1).WithName("ThisIsAVeryLongStudyGroupNameExceeds30Chars").Build();
-
-            Assert.ThrowsAsync<ArgumentException>(() => Repository.CreateStudyGroup(studyGroup));
+            Assert.Throws<ArgumentException>(() => new StudyGroupBuilder().WithId(1).WithName("ThisIsAVeryLongStudyGroupNameExceeds30Chars").Build());
         }
 
         [Test]

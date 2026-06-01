@@ -24,10 +24,16 @@ namespace StudyGroupApi.Domain.Entities
             Name = name;
             Subject = subject;
             CreateDate = createDate;
-            Users = users ?? new List<User>();
+            Users = new List<User>();
+
+            if (users == null)
+                return;
+
+            foreach (var user in users)
+                AddUser(user);
         }
 
-        public StudyGroup() { Users = new List<User>(); }
+        private StudyGroup() { Users = new List<User>(); }
 
         [Key]
         public int StudyGroupId { get; set; }
@@ -41,7 +47,7 @@ namespace StudyGroupApi.Domain.Entities
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
-            if (Users.Contains(user))
+            if (Users.Any(existingUser => existingUser.UserId == user.UserId))
                 throw new InvalidOperationException("User already exists in the group.");
             Users.Add(user);
         }
@@ -50,9 +56,13 @@ namespace StudyGroupApi.Domain.Entities
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
-            if (!Users.Contains(user))
+
+            var existingUser = Users.FirstOrDefault(existing => existing.UserId == user.UserId);
+
+            if (existingUser == null)
                 throw new InvalidOperationException("User not found in the group.");
-            Users.Remove(user);
+
+            Users.Remove(existingUser);
         }
 
         public static void ValidateName(string name)

@@ -56,7 +56,7 @@ Tests the full controller → repository → SQLite pipeline:
 
 ## Test Builders
 
-Located in `TestSupport/Builders/Builders.cs` in each test project.
+Located in shared file `TestSupport/Builders/Builders.cs` and linked by both test projects.
 
 Builders provide sensible defaults and fluent configuration to reduce test setup duplication:
 

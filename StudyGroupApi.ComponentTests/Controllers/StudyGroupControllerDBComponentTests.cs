@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using StudyGroupApi.Controllers;
 using StudyGroupApi.Domain.Entities;
 using StudyGroupApi.ComponentTests.Fixtures;
-using StudyGroupApi.ComponentTests.TestSupport.Builders;
+using StudyGroupApi.Tests.TestSupport.Builders;
 
 namespace StudyGroupApi.ComponentTests.Controllers
 {
@@ -27,9 +27,9 @@ namespace StudyGroupApi.ComponentTests.Controllers
         public async Task Should_Persist_StudyGroup_To_Database_When_Request_Is_Valid()
         {
             var user = new UserBuilder().WithId(1).WithName("TestUser").Build();
-            var studyGroup = new StudyGroupBuilder().WithId(1).WithName("Math Club").WithUser(user).Build();
+            var request = new CreateStudyGroupRequestBuilder().WithId(1).WithName("Math Club").WithUser(user).Build();
 
-            await _controller.CreateStudyGroup(studyGroup);
+            await _controller.CreateStudyGroup(request);
 
             var savedGroup = await DbContext.StudyGroups.Include(sg => sg.Users).FirstOrDefaultAsync(sg => sg.StudyGroupId == 1);
 
@@ -44,8 +44,8 @@ namespace StudyGroupApi.ComponentTests.Controllers
         public async Task Should_Reject_StudyGroup_When_Name_Is_Duplicate()
         {
             var user = new UserBuilder().WithId(1).WithName("TestUser").Build();
-            var studyGroup1 = new StudyGroupBuilder().WithId(1).WithName("Math Club").WithSubject(Subject.Math).WithUser(user).Build();
-            var studyGroup2 = new StudyGroupBuilder().WithId(2).WithName("Math Club").WithSubject(Subject.Physics).WithUser(user).Build();
+            var studyGroup1 = new CreateStudyGroupRequestBuilder().WithId(1).WithName("Math Club").WithSubject(Subject.Math).WithUser(user).Build();
+            var studyGroup2 = new CreateStudyGroupRequestBuilder().WithId(2).WithName("Math Club").WithSubject(Subject.Physics).WithUser(user).Build();
 
             await _controller.CreateStudyGroup(studyGroup1);
 
@@ -62,7 +62,7 @@ namespace StudyGroupApi.ComponentTests.Controllers
         public async Task Should_Reject_StudyGroup_When_Name_Is_Too_Short()
         {
             var user = new UserBuilder().WithId(2).Build();
-            var studyGroup = new StudyGroupBuilder().WithId(2).WithName("Math").WithUser(user).Build();
+            var studyGroup = new CreateStudyGroupRequestBuilder().WithId(2).WithName("Math").WithUser(user).Build();
 
             var result = await _controller.CreateStudyGroup(studyGroup) as BadRequestObjectResult;
 
@@ -77,7 +77,7 @@ namespace StudyGroupApi.ComponentTests.Controllers
         public async Task Should_Reject_StudyGroup_When_Name_Exceeds_30_Characters()
         {
             var user = new UserBuilder().WithId(3).Build();
-            var studyGroup = new StudyGroupBuilder().WithId(3).WithName("ThisIsAVeryLongStudyGroupNameThatExceeds30Chars").WithUser(user).Build();
+            var studyGroup = new CreateStudyGroupRequestBuilder().WithId(3).WithName("ThisIsAVeryLongStudyGroupNameThatExceeds30Chars").WithUser(user).Build();
 
             var result = await _controller.CreateStudyGroup(studyGroup) as BadRequestObjectResult;
 
@@ -99,7 +99,7 @@ namespace StudyGroupApi.ComponentTests.Controllers
         [Test, Ignore("Clarification needed - Can a StudyGroup be created with an empty user list?")]
         public async Task Should_Create_StudyGroup_When_User_List_Is_Empty()
         {
-            var studyGroup = new StudyGroupBuilder().WithId(4).WithName("Empty Users Group").WithSubject(Subject.Chemistry).WithNoUsers().Build();
+            var studyGroup = new CreateStudyGroupRequestBuilder().WithId(4).WithName("Empty Users Group").WithSubject(Subject.Chemistry).WithNoUsers().Build();
 
             await _controller.CreateStudyGroup(studyGroup);
 
@@ -117,7 +117,7 @@ namespace StudyGroupApi.ComponentTests.Controllers
         {
             var user = new UserBuilder().WithId(1).WithName("Alice").Build();
             var firstStudyGroup = new StudyGroupBuilder().WithId(1).WithName("Math Club").WithSubject(Subject.Math).WithUser(user).Build();
-            var secondStudyGroup = new StudyGroupBuilder().WithId(2).WithName("Advanced Math").WithSubject(Subject.Math).WithUser(user).Build();
+            var secondStudyGroup = new CreateStudyGroupRequestBuilder().WithId(2).WithName("Advanced Math").WithSubject(Subject.Math).WithUser(user).Build();
 
             await DbContext.Users.AddAsync(user);
             await DbContext.StudyGroups.AddAsync(firstStudyGroup);
@@ -136,7 +136,7 @@ namespace StudyGroupApi.ComponentTests.Controllers
             var user2 = new UserBuilder().WithId(2).WithName("Bob").Build();
 
             var firstStudyGroup = new StudyGroupBuilder().WithId(1).WithName("Math Club").WithSubject(Subject.Math).WithUser(user1).Build();
-            var secondStudyGroup = new StudyGroupBuilder().WithId(2).WithName("Math Experts").WithSubject(Subject.Math).WithUser(user2).Build();
+            var secondStudyGroup = new CreateStudyGroupRequestBuilder().WithId(2).WithName("Math Experts").WithSubject(Subject.Math).WithUser(user2).Build();
 
             await DbContext.Users.AddRangeAsync(user1, user2);
             await DbContext.StudyGroups.AddAsync(firstStudyGroup);

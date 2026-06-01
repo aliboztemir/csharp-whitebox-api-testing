@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using StudyGroupApi.Controllers;
 using StudyGroupApi.Domain.Entities;
 using StudyGroupApi.Repositories;
-using StudyGroupApi.UnitTests.TestSupport.Builders;
+using StudyGroupApi.Tests.TestSupport.Builders;
 
 namespace StudyGroupApi.UnitTests.Controllers
 {
@@ -29,15 +29,20 @@ namespace StudyGroupApi.UnitTests.Controllers
         public async Task Should_Create_StudyGroup_When_Request_Is_Valid()
         {
             var user = new UserBuilder().WithId(1).WithName("TestUser").Build();
-            var studyGroup = new StudyGroupBuilder().WithId(1).WithUser(user).Build();
+            var request = new CreateStudyGroupRequestBuilder().WithId(1).WithUser(user).Build();
 
-            _mockRepo.Setup(repo => repo.CreateStudyGroup(studyGroup)).Returns(Task.CompletedTask);
+            _mockRepo.Setup(repo => repo.CreateStudyGroup(It.IsAny<StudyGroup>())).Returns(Task.CompletedTask);
 
-            var result = await _controller.CreateStudyGroup(studyGroup) as OkResult;
+            var result = await _controller.CreateStudyGroup(request) as OkResult;
 
             Assert.IsNotNull(result);
             Assert.AreEqual(200, result.StatusCode);
-            _mockRepo.Verify(repo => repo.CreateStudyGroup(studyGroup), Times.Once);
+            _mockRepo.Verify(repo => repo.CreateStudyGroup(It.Is<StudyGroup>(group =>
+                group.StudyGroupId == request.StudyGroupId &&
+                group.Name == request.Name &&
+                group.Subject == request.Subject &&
+                group.Users.Count == 1 &&
+                group.Users[0].UserId == user.UserId)), Times.Once);
         }
 
         [Test]
@@ -47,16 +52,16 @@ namespace StudyGroupApi.UnitTests.Controllers
         public async Task Should_Reject_StudyGroup_When_Name_Is_Too_Short()
         {
             var user = new UserBuilder().WithId(2).Build();
-            var studyGroup = new StudyGroupBuilder().WithId(2).WithName("Math").WithUser(user).Build();
+            var request = new CreateStudyGroupRequestBuilder().WithId(2).WithName("Math").WithUser(user).Build();
 
-            _mockRepo.Setup(repo => repo.CreateStudyGroup(studyGroup))
+            _mockRepo.Setup(repo => repo.CreateStudyGroup(It.IsAny<StudyGroup>()))
                      .ThrowsAsync(new ArgumentException("Name is too short"));
 
-            var result = await _controller.CreateStudyGroup(studyGroup) as BadRequestObjectResult;
+            var result = await _controller.CreateStudyGroup(request) as BadRequestObjectResult;
 
             Assert.IsNotNull(result);
             Assert.AreEqual(400, result.StatusCode);
-            _mockRepo.Verify(repo => repo.CreateStudyGroup(studyGroup), Times.Once);
+            _mockRepo.Verify(repo => repo.CreateStudyGroup(It.IsAny<StudyGroup>()), Times.Never);
         }
 
         [Test]
@@ -66,16 +71,16 @@ namespace StudyGroupApi.UnitTests.Controllers
         public async Task Should_Reject_StudyGroup_When_Name_Is_Too_Long()
         {
             var user = new UserBuilder().WithId(3).Build();
-            var studyGroup = new StudyGroupBuilder().WithId(3).WithName("ThisIsAVeryLongStudyGroupNameThatExceeds30Chars").WithUser(user).Build();
+            var request = new CreateStudyGroupRequestBuilder().WithId(3).WithName("ThisIsAVeryLongStudyGroupNameThatExceeds30Chars").WithUser(user).Build();
 
-            _mockRepo.Setup(repo => repo.CreateStudyGroup(studyGroup))
+            _mockRepo.Setup(repo => repo.CreateStudyGroup(It.IsAny<StudyGroup>()))
                      .ThrowsAsync(new ArgumentException("Name is too long"));
 
-            var result = await _controller.CreateStudyGroup(studyGroup) as BadRequestObjectResult;
+            var result = await _controller.CreateStudyGroup(request) as BadRequestObjectResult;
 
             Assert.IsNotNull(result);
             Assert.AreEqual(400, result.StatusCode);
-            _mockRepo.Verify(repo => repo.CreateStudyGroup(studyGroup), Times.Once);
+            _mockRepo.Verify(repo => repo.CreateStudyGroup(It.IsAny<StudyGroup>()), Times.Never);
         }
 
         [Test]
@@ -93,10 +98,10 @@ namespace StudyGroupApi.UnitTests.Controllers
         [Test, Ignore("Clarification needed - Can a StudyGroup be created with an empty user list?")]
         public async Task Should_Create_StudyGroup_When_User_List_Is_Empty()
         {
-            var studyGroup = new StudyGroupBuilder().WithId(4).WithName("Empty Users Group").WithSubject(Subject.Chemistry).WithNoUsers().Build();
-            _mockRepo.Setup(repo => repo.CreateStudyGroup(studyGroup)).Returns(Task.CompletedTask);
+            var request = new CreateStudyGroupRequestBuilder().WithId(4).WithName("Empty Users Group").WithSubject(Subject.Chemistry).WithNoUsers().Build();
+            _mockRepo.Setup(repo => repo.CreateStudyGroup(It.IsAny<StudyGroup>())).Returns(Task.CompletedTask);
 
-            var result = await _controller.CreateStudyGroup(studyGroup) as OkResult;
+            var result = await _controller.CreateStudyGroup(request) as OkResult;
 
             Assert.IsNotNull(result);
             Assert.AreEqual(200, result.StatusCode);
@@ -108,28 +113,28 @@ namespace StudyGroupApi.UnitTests.Controllers
         public async Task Should_Reject_StudyGroup_When_User_Already_Has_Group_With_Same_Subject()
         {
             var user = new UserBuilder().WithId(1).WithName("Alice").Build();
-            var secondStudyGroup = new StudyGroupBuilder().WithId(2).WithName("Advanced Math").WithUser(user).Build();
+            var request = new CreateStudyGroupRequestBuilder().WithId(2).WithName("Advanced Math").WithUser(user).Build();
 
-            _mockRepo.Setup(repo => repo.CreateStudyGroup(secondStudyGroup))
+            _mockRepo.Setup(repo => repo.CreateStudyGroup(It.IsAny<StudyGroup>()))
                      .ThrowsAsync(new InvalidOperationException("User cannot create multiple groups with the same subject."));
 
-            var result = await _controller.CreateStudyGroup(secondStudyGroup) as BadRequestObjectResult;
+            var result = await _controller.CreateStudyGroup(request) as BadRequestObjectResult;
 
             Assert.IsNotNull(result);
             Assert.AreEqual(400, result.StatusCode);
-            _mockRepo.Verify(repo => repo.CreateStudyGroup(secondStudyGroup), Times.Once);
+            _mockRepo.Verify(repo => repo.CreateStudyGroup(It.IsAny<StudyGroup>()), Times.Once);
         }
 
         [Test, Ignore("Clarification needed - Should the system allow multiple StudyGroups with the same Subject?")]
         public async Task Should_Reject_StudyGroup_When_Same_Subject_Already_Exists_SystemWide()
         {
             var user2 = new UserBuilder().WithId(2).WithName("Bob").Build();
-            var secondStudyGroup = new StudyGroupBuilder().WithId(2).WithName("Math Experts").WithUser(user2).Build();
+            var request = new CreateStudyGroupRequestBuilder().WithId(2).WithName("Math Experts").WithUser(user2).Build();
 
-            _mockRepo.Setup(repo => repo.CreateStudyGroup(secondStudyGroup))
+            _mockRepo.Setup(repo => repo.CreateStudyGroup(It.IsAny<StudyGroup>()))
                      .ThrowsAsync(new InvalidOperationException("Duplicate subject study groups are not allowed system-wide."));
 
-            var result = await _controller.CreateStudyGroup(secondStudyGroup) as BadRequestObjectResult;
+            var result = await _controller.CreateStudyGroup(request) as BadRequestObjectResult;
 
             Assert.IsNotNull(result);
             Assert.AreEqual(400, result.StatusCode);
@@ -173,8 +178,8 @@ namespace StudyGroupApi.UnitTests.Controllers
         [Category("Unit")]
         public async Task Should_Return_StudyGroups_Sorted_By_CreationDate()
         {
-            var oldGroup = new StudyGroupBuilder().WithId(1).WithName("Chemistry Club").WithSubject(Subject.Chemistry).WithCreateDate(DateTime.Now.AddDays(-5)).WithNoUsers().Build();
-            var newGroup = new StudyGroupBuilder().WithId(2).WithName("Physics Club").WithSubject(Subject.Physics).WithCreateDate(DateTime.Now).WithNoUsers().Build();
+            var oldGroup = new StudyGroupBuilder().WithId(1).WithName("Chemistry Club").WithSubject(Subject.Chemistry).WithCreateDate(DateTime.Now.AddMinutes(1)).WithNoUsers().Build();
+            var newGroup = new StudyGroupBuilder().WithId(2).WithName("Physics Club").WithSubject(Subject.Physics).WithCreateDate(DateTime.Now.AddMinutes(2)).WithNoUsers().Build();
 
             _mockRepo.Setup(repo => repo.GetStudyGroups()).ReturnsAsync(new List<StudyGroup> { newGroup, oldGroup });
 
