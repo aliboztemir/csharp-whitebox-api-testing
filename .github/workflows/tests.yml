@@ -41,47 +41,185 @@ jobs:
           path: "TestResults/**/*.trx"
           reporter: dotnet-trx
 
-      - name: Create customer-facing HTML landing page
+      - name: Generate HTML summary and details from TRX
         if: always()
         run: |
           mkdir -p TestReport
-          cat > TestReport/index.html <<'EOF'
-          <!DOCTYPE html>
-          <html lang="tr">
+          python3 - <<'PY'
+          import os
+          import glob
+          import html
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          trx_files = glob.glob('TestResults/**/*.trx', recursive=True)
+          summary = {
+              'total': 0,
+              'passed': 0,
+              'failed': 0,
+              'skipped': 0,
+              'duration': 'N/A'
+          }
+          rows = []
+
+          def safe(s):
+              return html.escape(str(s or ''))
+
+          for trx in trx_files:
+              try:
+                  tree = ET.parse(trx)
+                  root = tree.getroot()
+              except Exception:
+                  continue
+
+              ns = {'t': root.tag.split('}')[0].strip('{')} if '}' in root.tag else {}
+              def findall(path):
+                  return root.findall(path, ns) if ns else root.findall(path)
+              def find(path):
+                  return root.find(path, ns) if ns else root.find(path)
+
+              counters = find('.//t:ResultSummary/t:Counters' if ns else './/ResultSummary/Counters')
+              if counters is not None:
+                  summary['total'] += int(counters.attrib.get('total', 0) or 0)
+                  summary['passed'] += int(counters.attrib.get('passed', 0) or 0)
+                  summary['failed'] += int(counters.attrib.get('failed', 0) or 0)
+                  not_exec = int(counters.attrib.get('notExecuted', 0) or 0)
+                  summary['skipped'] += not_exec
+
+              result_summary = find('.//t:ResultSummary' if ns else './/ResultSummary')
+              if result_summary is not None and result_summary.attrib.get('outcome'):
+                  summary['outcome'] = result_summary.attrib.get('outcome')
+
+              for r in findall('.//t:UnitTestResult' if ns else './/UnitTestResult'):
+                  test_name = r.attrib.get('testName', 'Unknown')
+                  outcome = r.attrib.get('outcome', 'Unknown')
+                  duration = r.attrib.get('duration', '')
+                  message = ''
+                  stack = ''
+                  output = r.find('.//t:ErrorInfo/t:Message' if ns else './/ErrorInfo/Message', ns) if ns else r.find('.//ErrorInfo/Message')
+                  if output is not None and output.text:
+                      message = output.text.strip()
+                  stack_node = r.find('.//t:ErrorInfo/t:StackTrace' if ns else './/ErrorInfo/StackTrace', ns) if ns else r.find('.//ErrorInfo/StackTrace')
+                  if stack_node is not None and stack_node.text:
+                      stack = stack_node.text.strip()
+
+                  cls = 'passed'
+                  if outcome.lower() == 'failed':
+                      cls = 'failed'
+                  elif outcome.lower() in ('notexecuted', 'skipped'):
+                      cls = 'skipped'
+
+                  rows.append({
+                      'name': test_name,
+                      'outcome': outcome,
+                      'duration': duration,
+                      'message': message,
+                      'stack': stack,
+                      'class': cls,
+                  })
+
+          rows.sort(key=lambda x: (0 if x['class'] == 'failed' else 1, x['name'].lower()))
+
+          detail_rows = []
+          for row in rows:
+              extra = ''
+              if row['message'] or row['stack']:
+                  extra = f"<details><summary>Error details</summary><pre>{safe(row['message'])}\n\n{safe(row['stack'])}</pre></details>"
+              detail_rows.append(
+                  f"<tr>"
+                  f"<td>{safe(row['name'])}</td>"
+                  f"<td><span class='badge {row['class']}'>{safe(row['outcome'])}</span></td>"
+                  f"<td>{safe(row['duration'])}</td>"
+                  f"<td>{extra}</td>"
+                  f"</tr>"
+              )
+
+          details_html = f"""<!DOCTYPE html>
+          <html lang='tr'>
           <head>
-            <meta charset="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <meta charset='UTF-8' />
+            <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+            <title>StudyGroup API Detailed Test Report</title>
+            <style>
+              body {{ font-family: Inter, Arial, sans-serif; margin: 0; background: #0b1020; color: #edf2ff; }}
+              .container {{ max-width: 1280px; margin: 0 auto; padding: 32px 20px 60px; }}
+              h1 {{ margin-bottom: 8px; }}
+              p, a {{ color: #a9b4d0; }}
+              a {{ text-decoration: none; }}
+              .toplink {{ display: inline-block; margin-bottom: 20px; color: #6ea8fe; }}
+              table {{ width: 100%; border-collapse: collapse; background: #121933; border: 1px solid #2a3766; border-radius: 12px; overflow: hidden; }}
+              th, td {{ text-align: left; padding: 14px; border-bottom: 1px solid #2a3766; vertical-align: top; }}
+              th {{ background: #1a2447; }}
+              .badge {{ display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }}
+              .passed {{ background: rgba(34,197,94,.15); color: #22c55e; }}
+              .failed {{ background: rgba(239,68,68,.15); color: #ef4444; }}
+              .skipped {{ background: rgba(245,158,11,.15); color: #f59e0b; }}
+              pre {{ white-space: pre-wrap; word-break: break-word; background: #0f1730; padding: 12px; border-radius: 8px; border: 1px solid #2a3766; }}
+              details summary {{ cursor: pointer; color: #6ea8fe; }}
+            </style>
+          </head>
+          <body>
+            <div class='container'>
+              <a class='toplink' href='./index.html'>&larr; Landing page</a>
+              <h1>Detailed Test Report</h1>
+              <p>Total: {summary['total']} | Passed: {summary['passed']} | Failed: {summary['failed']} | Skipped: {summary['skipped']}</p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Test</th>
+                    <th>Status</th>
+                    <th>Duration</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {''.join(detail_rows) if detail_rows else '<tr><td colspan="4">No test results found.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </body>
+          </html>
+          """
+
+          landing_html = f"""<!DOCTYPE html>
+          <html lang='tr'>
+          <head>
+            <meta charset='UTF-8' />
+            <meta name='viewport' content='width=device-width, initial-scale=1.0' />
             <title>StudyGroup API Test Report</title>
             <style>
-              :root {
+              :root {{
                 --bg: #0b1020;
                 --panel: #121933;
                 --panel-2: #1a2447;
                 --text: #edf2ff;
                 --muted: #a9b4d0;
                 --accent: #6ea8fe;
+                --success: #22c55e;
+                --warning: #f59e0b;
+                --danger: #ef4444;
                 --border: #2a3766;
-              }
-              * { box-sizing: border-box; }
-              body {
+              }}
+              * {{ box-sizing: border-box; }}
+              body {{
                 margin: 0;
                 font-family: Inter, Arial, sans-serif;
                 background: linear-gradient(180deg, #0b1020 0%, #111936 100%);
                 color: var(--text);
-              }
-              .container {
+              }}
+              .container {{
                 max-width: 1100px;
                 margin: 0 auto;
                 padding: 40px 20px 60px;
-              }
-              .hero {
+              }}
+              .hero {{
                 background: rgba(18, 25, 51, 0.9);
                 border: 1px solid var(--border);
                 border-radius: 20px;
                 padding: 32px;
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-              }
-              .badge {
+              }}
+              .badge {{
                 display: inline-block;
                 padding: 6px 12px;
                 border-radius: 999px;
@@ -90,47 +228,47 @@ jobs:
                 font-size: 14px;
                 font-weight: 600;
                 margin-bottom: 14px;
-              }
-              h1 {
+              }}
+              h1 {{
                 margin: 0 0 12px;
                 font-size: 36px;
                 line-height: 1.2;
-              }
-              p {
+              }}
+              p {{
                 color: var(--muted);
                 font-size: 16px;
                 line-height: 1.7;
-              }
-              .grid {
+              }}
+              .grid {{
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
                 gap: 16px;
                 margin-top: 24px;
-              }
-              .card {
+              }}
+              .card {{
                 background: var(--panel-2);
                 border: 1px solid var(--border);
                 border-radius: 16px;
                 padding: 20px;
-              }
-              .card h2 {
+              }}
+              .card h2 {{
                 margin: 0 0 8px;
                 font-size: 16px;
                 color: var(--muted);
                 font-weight: 600;
-              }
-              .card .value {
+              }}
+              .card .value {{
                 font-size: 24px;
                 font-weight: 700;
                 word-break: break-word;
-              }
-              .actions {
+              }}
+              .actions {{
                 display: flex;
                 flex-wrap: wrap;
                 gap: 12px;
                 margin-top: 28px;
-              }
-              .btn {
+              }}
+              .btn {{
                 display: inline-block;
                 padding: 14px 18px;
                 border-radius: 12px;
@@ -138,97 +276,101 @@ jobs:
                 color: white;
                 font-weight: 600;
                 border: 1px solid transparent;
-              }
-              .btn-secondary {
+              }}
+              .btn-primary {{
+                background: var(--accent);
+                color: #081120;
+              }}
+              .btn-secondary {{
                 background: transparent;
                 border-color: var(--border);
                 color: var(--text);
-              }
-              .section {
+              }}
+              .section {{
                 margin-top: 28px;
                 background: rgba(18, 25, 51, 0.9);
                 border: 1px solid var(--border);
                 border-radius: 20px;
                 padding: 28px;
-              }
-              ul {
+              }}
+              ul {{
                 margin: 12px 0 0;
                 padding-left: 20px;
                 color: var(--muted);
                 line-height: 1.8;
-              }
-              .footer {
+              }}
+              .footer {{
                 margin-top: 18px;
                 color: var(--muted);
                 font-size: 14px;
-              }
-              code {
-                background: rgba(255,255,255,0.06);
-                padding: 2px 6px;
-                border-radius: 6px;
-              }
+              }}
             </style>
           </head>
           <body>
-            <div class="container">
-              <section class="hero">
-                <div class="badge">Customer Test Report</div>
+            <div class='container'>
+              <section class='hero'>
+                <div class='badge'>Customer Test Report</div>
                 <h1>StudyGroup API Automated Test Results</h1>
                 <p>
                   This page contains the latest automated test execution summary for the
-                  <strong>StudyGroup API</strong> project. Detailed raw test outputs are
-                  available in the GitHub Actions artifacts and Checks view.
+                  <strong>StudyGroup API</strong> project. Detailed raw test outputs and
+                  parsed HTML details are available below.
                 </p>
 
-                <div class="grid">
-                  <div class="card">
+                <div class='grid'>
+                  <div class='card'>
                     <h2>Repository</h2>
-                    <div class="value">aliboztemir/csharp-whitebox-api-testing</div>
+                    <div class='value'>aliboztemir/csharp-whitebox-api-testing</div>
                   </div>
-                  <div class="card">
-                    <h2>Platform</h2>
-                    <div class="value">.NET 8 / GitHub Actions</div>
+                  <div class='card'>
+                    <h2>Total</h2>
+                    <div class='value'>{summary['total']}</div>
                   </div>
-                  <div class="card">
-                    <h2>Report Type</h2>
-                    <div class="value">TRX + GitHub Checks + Artifact</div>
+                  <div class='card'>
+                    <h2>Passed</h2>
+                    <div class='value'>{summary['passed']}</div>
                   </div>
-                  <div class="card">
-                    <h2>Audience</h2>
-                    <div class="value">Customer / Technical Review</div>
+                  <div class='card'>
+                    <h2>Failed</h2>
+                    <div class='value'>{summary['failed']}</div>
                   </div>
                 </div>
 
-                <div class="actions">
-                  <a class="btn btn-secondary" href="https://github.com/aliboztemir/csharp-whitebox-api-testing/actions">Open GitHub Actions</a>
+                <div class='actions'>
+                  <a class='btn btn-primary' href='./details.html'>Open Detailed HTML Report</a>
+                  <a class='btn btn-secondary' href='https://github.com/aliboztemir/csharp-whitebox-api-testing/actions'>Open GitHub Actions</a>
                 </div>
               </section>
 
-              <section class="section">
+              <section class='section'>
                 <h2>What this report includes</h2>
                 <ul>
                   <li>Automated test execution results collected during CI runs</li>
                   <li>Machine-readable <code>.trx</code> files for traceability</li>
-                  <li>GitHub Checks annotations for quick inspection</li>
-                  <li>Uploaded artifacts for download and review</li>
+                  <li>Parsed detailed HTML view for customer-friendly inspection</li>
+                  <li>GitHub Checks annotations for quick review</li>
                 </ul>
               </section>
 
-              <section class="section">
+              <section class='section'>
                 <h2>Presentation recommendation</h2>
                 <ul>
-                  <li>Use this page as a customer-facing summary entry point</li>
-                  <li>Use the GitHub Checks tab for pass/fail breakdown</li>
+                  <li>Use this page as the summary entry point</li>
+                  <li>Use the detailed HTML report for test-by-test inspection</li>
                   <li>Use uploaded TRX artifacts when raw execution evidence is needed</li>
                 </ul>
-                <div class="footer">
+                <div class='footer'>
                   Generated automatically by GitHub Actions.
                 </div>
               </section>
             </div>
           </body>
           </html>
-          EOF
+          """
+
+          Path('TestReport/index.html').write_text(landing_html, encoding='utf-8')
+          Path('TestReport/details.html').write_text(details_html, encoding='utf-8')
+          PY
 
       - name: Upload TRX results
         if: always()
