@@ -79,10 +79,10 @@ namespace StudyGroupApi.ComponentTests.Controllers
             var user = new UserBuilder().WithId(3).Build();
             var studyGroup = new StudyGroupBuilder().WithId(3).WithName("ThisIsAVeryLongStudyGroupNameThatExceeds30Chars").WithUser(user).Build();
 
-            await _controller.CreateStudyGroup(studyGroup);
+            var result = await _controller.CreateStudyGroup(studyGroup) as BadRequestObjectResult;
 
-            var count = await DbContext.StudyGroups.CountAsync();
-            Assert.AreEqual(0, count, "Database should not store a StudyGroup with a name longer than 30 characters.");
+            Assert.IsNotNull(result);
+            Assert.AreEqual(400, result.StatusCode);
         }
 
         [Test]

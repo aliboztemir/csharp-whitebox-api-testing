@@ -15,12 +15,7 @@ namespace StudyGroupApi.Repositories
 
         public async Task CreateStudyGroup(StudyGroup studyGroup)
         {
-            if (string.IsNullOrEmpty(studyGroup.Name))
-                throw new ArgumentException("Name cannot be null or empty.");
-            if (studyGroup.Name.Length < 5)
-                throw new ArgumentException("Name must be at least 5 characters.");
-            if (studyGroup.Name.Length > 30)
-                throw new ArgumentException("Name cannot exceed 30 characters.");
+            StudyGroup.ValidateName(studyGroup.Name);
 
             var duplicate = await _dbContext.StudyGroups
                 .AnyAsync(sg => sg.Name == studyGroup.Name);

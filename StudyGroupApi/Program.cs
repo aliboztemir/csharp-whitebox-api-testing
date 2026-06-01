@@ -4,7 +4,6 @@ using StudyGroupApi.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Specify the database to be used
 var useSqlite = builder.Configuration.GetValue<bool>("UseSqlite");
 
 if (useSqlite)
@@ -18,9 +17,7 @@ else
         options.UseSqlServer(builder.Configuration.GetConnectionString("MSSQLConnection")));
 }
 
-// Dependency Injection
 builder.Services.AddScoped<IStudyGroupRepository, StudyGroupRepository>();
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

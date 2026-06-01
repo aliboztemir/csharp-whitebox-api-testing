@@ -2,7 +2,7 @@ trigger:
 - main
 
 pool:
-  name: 'RoniAgentFirst'  # Self-hosted agent pool name
+  name: 'RoniAgentFirst'
 
 variables:
   buildConfiguration: 'Release'
@@ -15,43 +15,36 @@ steps:
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: DotNetCoreCLI@2
+  displayName: 'Restore'
   inputs:
     command: 'restore'
-    projects: '**/*.csproj'
+    projects: 'StudyGroupApi.sln'
 
 - task: DotNetCoreCLI@2
+  displayName: 'Build'
   inputs:
     command: 'build'
-    projects: 'StudyGroupApi/StudyGroupApi.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+    projects: 'StudyGroupApi.sln'
+    arguments: '--no-restore --configuration $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    projects: 'StudyGroupApi.UnitTests/StudyGroupApi.UnitTests.csproj'
-    arguments: '--configuration $(buildConfiguration)'
-
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    projects: 'StudyGroupApi.ComponentTests/StudyGroupApi.ComponentTests.csproj'
-    arguments: '--configuration $(buildConfiguration)'
-
-- task: DotNetCoreCLI@2
+  displayName: 'Unit Tests'
   inputs:
     command: 'test'
     projects: 'StudyGroupApi.UnitTests/StudyGroupApi.UnitTests.csproj'
-    arguments: '--configuration $(buildConfiguration) --logger trx --results-directory $(System.DefaultWorkingDirectory)/TestResults/UnitTests'
+    arguments: '--no-build --configuration $(buildConfiguration) --logger trx --results-directory $(System.DefaultWorkingDirectory)/TestResults/UnitTests'
   continueOnError: true
 
 - task: DotNetCoreCLI@2
+  displayName: 'Component Tests'
   inputs:
     command: 'test'
     projects: 'StudyGroupApi.ComponentTests/StudyGroupApi.ComponentTests.csproj'
-    arguments: '--configuration $(buildConfiguration) --logger trx --results-directory $(System.DefaultWorkingDirectory)/TestResults/ComponentTests'
+    arguments: '--no-build --configuration $(buildConfiguration) --logger trx --results-directory $(System.DefaultWorkingDirectory)/TestResults/ComponentTests'
   continueOnError: true
 
 - task: PublishTestResults@2
+  displayName: 'Publish Test Results'
   inputs:
     testResultsFormat: 'VSTest'
     testResultsFiles: '$(System.DefaultWorkingDirectory)/TestResults/**/*.trx'

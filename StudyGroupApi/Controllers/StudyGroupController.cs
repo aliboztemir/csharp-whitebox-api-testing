@@ -15,7 +15,7 @@ namespace StudyGroupApi.Controllers
             _studyGroupRepository = studyGroupRepository;
         }
 
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<IActionResult> CreateStudyGroup([FromBody] StudyGroup studyGroup)
         {
             if (studyGroup == null)

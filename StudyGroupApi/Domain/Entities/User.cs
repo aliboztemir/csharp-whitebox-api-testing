@@ -10,5 +10,7 @@ namespace StudyGroupApi.Domain.Entities
             UserId = userId;
             Name = name;
         }
+
+        public User() { }
     }
 }

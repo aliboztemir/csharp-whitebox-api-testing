@@ -10,12 +10,7 @@ namespace StudyGroupApi.Domain.Entities
             if (studyGroupId < 0)
                 throw new ArgumentOutOfRangeException(nameof(studyGroupId), "ID cannot be negative");
 
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentException("Name cannot be null or empty.", nameof(name));
-            if (name.Length < 5)
-                throw new ArgumentException("Name must be at least 5 characters.", nameof(name));
-            if (name.Length > 30)
-                throw new ArgumentException("Name cannot exceed 30 characters.", nameof(name));
+            ValidateName(name);
 
             if (!Enum.IsDefined(typeof(Subject), subject))
                 throw new InvalidEnumArgumentException("Invalid subject type");
@@ -32,7 +27,7 @@ namespace StudyGroupApi.Domain.Entities
             Users = users ?? new List<User>();
         }
 
-        public StudyGroup() { }
+        public StudyGroup() { Users = new List<User>(); }
 
         [Key]
         public int StudyGroupId { get; set; }
@@ -58,6 +53,16 @@ namespace StudyGroupApi.Domain.Entities
             if (!Users.Contains(user))
                 throw new InvalidOperationException("User not found in the group.");
             Users.Remove(user);
+        }
+
+        public static void ValidateName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException("Name cannot be null or empty.", nameof(name));
+            if (name.Length < 5)
+                throw new ArgumentException("Name must be at least 5 characters.", nameof(name));
+            if (name.Length > 30)
+                throw new ArgumentException("Name cannot exceed 30 characters.", nameof(name));
         }
     }
 
