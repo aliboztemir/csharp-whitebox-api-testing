@@ -22,12 +22,18 @@ namespace StudyGroupApi.Repositories
             if (duplicate)
                 throw new InvalidOperationException("A study group with this name already exists.");
 
-            foreach (var user in studyGroup.Users)
+            var userIds = studyGroup.Users
+                .Select(user => user.UserId)
+                .Distinct()
+                .ToList();
+
+            if (userIds.Count > 0)
             {
                 var conflict = await _dbContext.StudyGroups
-                    .Include(sg => sg.Users)
-                    .AnyAsync(sg => sg.Subject == studyGroup.Subject
-                                 && sg.Users.Any(u => u.UserId == user.UserId));
+                    .Where(sg => sg.Subject == studyGroup.Subject)
+                    .SelectMany(sg => sg.Users.Select(user => user.UserId))
+                    .AnyAsync(existingUserId => userIds.Contains(existingUserId));
+
                 if (conflict)
                     throw new InvalidOperationException("User cannot create multiple groups with the same subject.");
             }

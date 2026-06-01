@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using StudyGroupApi.Contracts.Requests;
 using StudyGroupApi.Domain.Entities;
 using StudyGroupApi.Repositories;
 
@@ -16,13 +17,21 @@ namespace StudyGroupApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateStudyGroup([FromBody] StudyGroup studyGroup)
+        public async Task<IActionResult> CreateStudyGroup([FromBody] CreateStudyGroupRequest? request)
         {
-            if (studyGroup == null)
+            if (request == null)
                 return BadRequest();
 
             try
             {
+                var studyGroup = new StudyGroup(
+                    request.StudyGroupId,
+                    request.Name!,
+                    request.Subject,
+                    request.CreateDate,
+                    request.Users?.Select(user => new User(user.UserId, user.Name!)).ToList() ?? new List<User>()
+                );
+
                 await _studyGroupRepository.CreateStudyGroup(studyGroup);
                 return Ok();
             }

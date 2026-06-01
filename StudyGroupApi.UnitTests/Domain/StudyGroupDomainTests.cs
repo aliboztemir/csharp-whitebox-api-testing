@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using StudyGroupApi.Domain.Entities;
-using StudyGroupApi.UnitTests.TestSupport.Builders;
+using StudyGroupApi.Tests.TestSupport.Builders;
 
 namespace StudyGroupApi.UnitTests.Domain
 {
@@ -119,7 +119,7 @@ namespace StudyGroupApi.UnitTests.Domain
         [NUnit.Framework.Category("Validation")]
         public void Should_Accept_StudyGroup_When_Name_Has_Exactly_30_Characters()
         {
-            var validName = "StudyGroupNameWithExactly30Chars";
+            var validName = "StudyGroupNameWith30Characters";
             var studyGroup = new StudyGroupBuilder().WithId(21).WithName(validName).WithSubject(Subject.Math).Build();
             Assert.AreEqual(validName, studyGroup.Name);
         }
@@ -198,6 +198,19 @@ namespace StudyGroupApi.UnitTests.Domain
 
         [Test]
         [NUnit.Framework.Category("Unit")]
+        [NUnit.Framework.Category("Negative")]
+        public void Should_Reject_Duplicate_UserId_When_Adding_Different_User_Instance()
+        {
+            var existingUser = new UserBuilder().WithId(11).WithName("David").Build();
+            var sameIdDifferentInstance = new UserBuilder().WithId(11).WithName("David Clone").Build();
+            var studyGroup = new StudyGroupBuilder().WithId(36).WithName("Linear Algebra Group").WithSubject(Subject.Math).WithUser(existingUser).Build();
+
+            var exception = Assert.Throws<InvalidOperationException>(() => studyGroup.AddUser(sameIdDifferentInstance));
+            Assert.AreEqual("User already exists in the group.", exception.Message);
+        }
+
+        [Test]
+        [NUnit.Framework.Category("Unit")]
         public void Should_Remove_User_From_StudyGroup_When_User_Is_Member()
         {
             var user = new UserBuilder().WithId(6).WithName("John").Build();
@@ -228,6 +241,19 @@ namespace StudyGroupApi.UnitTests.Domain
 
             var exception = Assert.Throws<InvalidOperationException>(() => studyGroup.RemoveUser(user));
             Assert.AreEqual("User not found in the group.", exception.Message);
+        }
+
+        [Test]
+        [NUnit.Framework.Category("Unit")]
+        public void Should_Remove_User_By_UserId_When_User_Instance_Differs()
+        {
+            var existingUser = new UserBuilder().WithId(21).WithName("Jonathan").Build();
+            var sameIdDifferentInstance = new UserBuilder().WithId(21).WithName("Jonathan Clone").Build();
+            var studyGroup = new StudyGroupBuilder().WithId(56).WithName("Data Science Group").WithSubject(Subject.Chemistry).WithUser(existingUser).Build();
+
+            studyGroup.RemoveUser(sameIdDifferentInstance);
+
+            Assert.AreEqual(0, studyGroup.Users.Count);
         }
 
         // -- Sanity check -----------------------------------------------------
