@@ -1,10 +1,6 @@
 # StudyGroupApi — C# Whitebox API Testing
 
-This project focuses on demonstrating API testing practices using NUnit across multiple test layers rather than providing a production-ready study group management application.
-
-## Overview
-
-A portfolio project demonstrating white-box testing of an ASP.NET Core Web API using NUnit, Moq, and EF Core in-memory SQLite. The emphasis is on test architecture, test readability, and multi-layer API testing.
+A portfolio project demonstrating white-box testing of an ASP.NET Core REST API using NUnit, Moq, and EF Core in-memory SQLite. The emphasis is on test architecture, test readability, and multi-layer API testing.
 
 ---
 
@@ -12,7 +8,7 @@ A portfolio project demonstrating white-box testing of an ASP.NET Core Web API u
 
 | Project | Type | Description |
 |---|---|---|
-| `StudyGroupApi` | Web API | ASP.NET Core REST API for study group management |
+| `StudyGroupApi` | REST API | ASP.NET Core REST API — study group management (create, join, leave, search) |
 | `StudyGroupApi.UnitTests` | Unit Tests | Domain logic + controller behavior via Moq |
 | `StudyGroupApi.ComponentTests` | Component Tests | Controller + repository wired with SQLite in-memory DB |
 
