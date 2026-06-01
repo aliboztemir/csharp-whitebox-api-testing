@@ -53,6 +53,214 @@ jobs:
             -targetdir:"TestReport" \
             -reporttypes:"Html;HtmlSummary"
 
+      - name: Create branded landing page
+        if: always()
+        run: |
+          mkdir -p TestReport
+          cat > TestReport/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="tr">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>StudyGroup API Test Report</title>
+            <style>
+              :root {
+                --bg: #0b1020;
+                --panel: #121933;
+                --panel-2: #1a2447;
+                --text: #edf2ff;
+                --muted: #a9b4d0;
+                --accent: #6ea8fe;
+                --success: #22c55e;
+                --warning: #f59e0b;
+                --danger: #ef4444;
+                --border: #2a3766;
+              }
+              * { box-sizing: border-box; }
+              body {
+                margin: 0;
+                font-family: Inter, Arial, sans-serif;
+                background: linear-gradient(180deg, #0b1020 0%, #111936 100%);
+                color: var(--text);
+              }
+              .container {
+                max-width: 1100px;
+                margin: 0 auto;
+                padding: 40px 20px 60px;
+              }
+              .hero {
+                background: rgba(18, 25, 51, 0.9);
+                border: 1px solid var(--border);
+                border-radius: 20px;
+                padding: 32px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+              }
+              .badge {
+                display: inline-block;
+                padding: 6px 12px;
+                border-radius: 999px;
+                background: rgba(110, 168, 254, 0.12);
+                color: var(--accent);
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 14px;
+              }
+              h1 {
+                margin: 0 0 12px;
+                font-size: 36px;
+                line-height: 1.2;
+              }
+              p {
+                color: var(--muted);
+                font-size: 16px;
+                line-height: 1.7;
+              }
+              .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 16px;
+                margin-top: 24px;
+              }
+              .card {
+                background: var(--panel-2);
+                border: 1px solid var(--border);
+                border-radius: 16px;
+                padding: 20px;
+              }
+              .card h2 {
+                margin: 0 0 8px;
+                font-size: 16px;
+                color: var(--muted);
+                font-weight: 600;
+              }
+              .card .value {
+                font-size: 24px;
+                font-weight: 700;
+              }
+              .actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                margin-top: 28px;
+              }
+              .btn {
+                display: inline-block;
+                padding: 14px 18px;
+                border-radius: 12px;
+                text-decoration: none;
+                color: white;
+                font-weight: 600;
+                border: 1px solid transparent;
+              }
+              .btn-primary {
+                background: var(--accent);
+                color: #081120;
+              }
+              .btn-secondary {
+                background: transparent;
+                border-color: var(--border);
+                color: var(--text);
+              }
+              .section {
+                margin-top: 28px;
+                background: rgba(18, 25, 51, 0.9);
+                border: 1px solid var(--border);
+                border-radius: 20px;
+                padding: 28px;
+              }
+              ul {
+                margin: 12px 0 0;
+                padding-left: 20px;
+                color: var(--muted);
+                line-height: 1.8;
+              }
+              .footer {
+                margin-top: 18px;
+                color: var(--muted);
+                font-size: 14px;
+              }
+              code {
+                background: rgba(255,255,255,0.06);
+                padding: 2px 6px;
+                border-radius: 6px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <section class="hero">
+                <div class="badge">Customer Test Report</div>
+                <h1>StudyGroup API Automated Test Results</h1>
+                <p>
+                  This page contains the latest automated test execution summary for the
+                  <strong>StudyGroup API</strong> project. Detailed raw test outputs and
+                  generated technical reports are available in the GitHub Actions run artifacts.
+                </p>
+
+                <div class="grid">
+                  <div class="card">
+                    <h2>Repository</h2>
+                    <div class="value">aliboztemir/csharp-whitebox-api-testing</div>
+                  </div>
+                  <div class="card">
+                    <h2>Platform</h2>
+                    <div class="value">.NET 8 / GitHub Actions</div>
+                  </div>
+                  <div class="card">
+                    <h2>Report Type</h2>
+                    <div class="value">HTML + TRX + Actions Summary</div>
+                  </div>
+                  <div class="card">
+                    <h2>Audience</h2>
+                    <div class="value">Customer / Technical Review</div>
+                  </div>
+                </div>
+
+                <div class="actions">
+                  <a class="btn btn-primary" href="./index.htm">Open Detailed HTML Report</a>
+                  <a class="btn btn-secondary" href="https://github.com/aliboztemir/csharp-whitebox-api-testing/actions">Open GitHub Actions</a>
+                </div>
+              </section>
+
+              <section class="section">
+                <h2>What this report includes</h2>
+                <ul>
+                  <li>Automated test execution results collected during CI runs</li>
+                  <li>Machine-readable <code>.trx</code> files for technical traceability</li>
+                  <li>GitHub Actions summary annotations for fast review</li>
+                  <li>HTML output intended for stakeholder-friendly presentation</li>
+                </ul>
+              </section>
+
+              <section class="section">
+                <h2>Presentation recommendation</h2>
+                <ul>
+                  <li>Use this landing page as the customer-facing entry point</li>
+                  <li>Use the detailed HTML report for engineering validation</li>
+                  <li>Use GitHub Actions artifacts when raw execution evidence is required</li>
+                </ul>
+                <div class="footer">
+                  Generated automatically by GitHub Actions.
+                </div>
+              </section>
+            </div>
+          </body>
+          </html>
+          EOF
+
+          if [ -f TestReport/index.htm ]; then
+            mv TestReport/index.htm TestReport/details.html
+            cp TestReport/index.html TestReport/index.original.html
+            python3 - <<'PY'
+from pathlib import Path
+p = Path('TestReport/index.html')
+text = p.read_text()
+text = text.replace('./index.htm', './details.html')
+p.write_text(text)
+PY
+          fi
+
       - name: Upload TRX results
         uses: actions/upload-artifact@v4
         if: always()
@@ -71,6 +279,9 @@ jobs:
     needs: test
     if: always()
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Download HTML report artifact
